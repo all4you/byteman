@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.byteman</groupId>
+    <artifactId>byteman</artifactId>
+    <version>0.0.1</version>
+
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven-antrun.version>1.8</maven-antrun.version>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <byte-buddy.version>1.10.20</byte-buddy.version>
+        <slf4j-api.version>1.7.25</slf4j-api.version>
+        <jcl-over-slf4j.version>1.6.6</jcl-over-slf4j.version>
+        <slf4j-log4j12.version>1.6.6</slf4j-log4j12.version>
+        <log4j-slf4j-impl.version>2.12.1</log4j-slf4j-impl.version>
+        <logback-classic.version>1.2.3</logback-classic.version>
+        <log4j.version>1.2.17</log4j.version>
+        <log4j-core.version>2.6.2</log4j-core.version>
+        <commons-logging.version>1.2</commons-logging.version>
+        <junit.version>4.12</junit.version>
+        <spock.version>1.3-groovy-2.5</spock.version>
+        <groovy.version>2.5.4</groovy.version>
+    </properties>
+
+    <dependencies>
+        <!-- byte-buddy -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${byte-buddy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${byte-buddy.version}</version>
+        </dependency>
+
+        <!-- 统一了slf4j|jcl等日志门面的日志框架 -->
+        <!-- slf4j日志门面 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+            <!-- 这个包tracktrace-core不提供，由依赖tracktrace-core的应用提供 -->
+            <scope>provided</scope>
+        </dependency>
+        <!-- 以下这些optional的包，需要调用者按需自行依赖，用到哪个日志框架就引入哪个 -->
+        <!-- 日志框架：slf4j的logback实现，首选logback作为slf4j的实现框架，所以要放在其他框架之前 -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 桥接器：把调用slf4j的方法转移到log4j上，不能和log4j-over-slf4j桥接器同时存在，否则会造成循环调用最终产生StackOverFlowError -->
+        <!-- 使用的具体的日志框架是：log4j -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j-log4j12.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- 日志框架：log4j，可以直接使用，也可以和slf4j-log4j12配合使用，使用slf4j的接口定义logger，使用桥接器将接口的调用转到log4j上 -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 桥接器：把调用slf4j的方法转移到log4j2上，https://logging.apache.org/log4j/2.x/log4j-slf4j-impl
+        支持SLF4J 1.7.x及以下版本, 如果相使用 SLF4J 1.8.x 及以上的版本，需要使用这个桥接器：log4j-slf4j18-impl  -->
+        <!-- 使用的具体的日志框架是：log4j-core 即log4j2 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j-slf4j-impl.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- 日志框架：log4j2， 可以单独使用，也可以和log4j-slf4j-impl配合使用，使用slf4j的接口定义logger，使用桥接器将接口的调用转到log4j2上 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j-core.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 桥接器：把调用log4j的方法转移到slf4j上，不能和slf4j-log4j12桥接器同时存在，否则会造成循环调用最终产生StackOverFlowError
+         该桥接器主要是用在项目中已经通过log4j的api进行打日志了，为了不改变原来代码的情况下，通过该桥接器把调用log4j的方法转移到调用slf4j上
+         然后再通过logback等slf4j的实现类实现具体的日志打印 -->
+        <!--<dependency>-->
+        <!--<groupId>org.slf4j</groupId>-->
+        <!--<artifactId>log4j-over-slf4j</artifactId>-->
+        <!--<version>1.7.26</version>-->
+        <!--<optional>true</optional>-->
+        <!--</dependency>-->
+
+        <!-- 桥接器：把调用jcl的方法转移到slf4j上 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${jcl-over-slf4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- 日志框架：独立的commons-logging日志框架 -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons-logging.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 单元测试框架 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- spock-core测试框架
+                        https://mp.weixin.qq.com/s/U1FArrcdFf3NKui6_Sf-qw
+                        https://juejin.cn/post/6844903957475622926
+                        -->
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>${spock.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 编译插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <!-- 编译时保留方法的参数名称 -->
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <parameters>true</parameters>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
