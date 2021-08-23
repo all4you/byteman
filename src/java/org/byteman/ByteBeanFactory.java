@@ -40,10 +40,6 @@ public interface ByteBeanFactory {
 
     <S, T> T copyBean(S source, Class<T> target);
 
-    //    <T> T mapToBean(Map<String, Object> source, Class<T> target);
-//        <T> Map<String, Object> beanToMap(T bean);
-
-
     enum Factories implements ByteBeanFactory {
 
         /**
